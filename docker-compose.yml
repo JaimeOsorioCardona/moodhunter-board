@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: moodhunter-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-moodhunter_root_secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-moodhunter_db}
+      MYSQL_USER: ${MYSQL_USER:-moodhunter}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-moodhunter_pass}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-moodhunter_root_secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: moodhunter-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - DATABASE_URL=mysql+aiomysql://${MYSQL_USER:-moodhunter}:${MYSQL_PASSWORD:-moodhunter_pass}@db:3306/${MYSQL_DATABASE:-moodhunter_db}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-gemini-1.5-flash}
+      - LLM_TIMEOUT_SECONDS=${LLM_TIMEOUT_SECONDS:-5.0}
+      - LLM_CIRCUIT_BREAKER_FAIL_THRESHOLD=${LLM_CIRCUIT_BREAKER_FAIL_THRESHOLD:-3}
+      - LLM_CIRCUIT_BREAKER_RESET_SECONDS=${LLM_CIRCUIT_BREAKER_RESET_SECONDS:-60}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: moodhunter-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
