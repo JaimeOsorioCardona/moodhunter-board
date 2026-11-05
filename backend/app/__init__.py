@@ -1,0 +1,1 @@
+"""Mood Hunter App Package."""
