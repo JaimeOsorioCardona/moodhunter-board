@@ -148,8 +148,12 @@ class RequestService:
 
     def _to_entity(self, model: RequestModel) -> RequestEntity:
         """Map SQLAlchemy model to clean domain entity."""
+        from sqlalchemy import inspect
+        from sqlalchemy.orm.base import NO_VALUE
+
         history_entities = []
-        if getattr(model, "history", None):
+        insp = inspect(model)
+        if "history" in insp.attrs and insp.attrs.history.loaded_value is not NO_VALUE:
             for h in model.history:
                 history_entities.append(
                     StatusHistoryEntity(

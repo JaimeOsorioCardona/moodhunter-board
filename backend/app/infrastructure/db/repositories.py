@@ -48,6 +48,8 @@ class SQLAlchemyRequestRepository(IRequestRepository):
             select(RequestModel)
             .options(
                 joinedload(RequestModel.status),
+                selectinload(RequestModel.history).joinedload(RequestStatusHistoryModel.from_status),
+                selectinload(RequestModel.history).joinedload(RequestStatusHistoryModel.to_status),
             )
             .order_by(RequestModel.updated_at.desc())
         )
