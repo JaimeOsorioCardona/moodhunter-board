@@ -17,6 +17,7 @@ from app.infrastructure.db.session import init_db
 from app.presentation.handlers import domain_error_handler, validation_error_handler
 from app.presentation.routers.health import router as health_router
 from app.presentation.routers.requests import router as requests_router
+from app.presentation.routers.summary import router as summary_router
 
 settings = get_settings()
 
@@ -94,3 +95,4 @@ app.add_exception_handler(RequestValidationError, validation_error_handler)  # t
 # Include Routers
 app.include_router(health_router)
 app.include_router(requests_router, prefix="/api/v1")
+app.include_router(summary_router, prefix="/api/v1")
