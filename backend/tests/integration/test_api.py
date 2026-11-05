@@ -119,3 +119,16 @@ async def test_unknown_status_returns_422(client: AsyncClient):
     )
     assert res.status_code == 422
     assert res.json()["error"] == "unknown_status"
+
+
+@pytest.mark.anyio
+async def test_ai_summary_endpoint_returns_200_fallback(client: AsyncClient):
+    res = await client.post("/api/v1/requests/ai-summary")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["source"] in ("llm", "fallback")
+    assert "headline" in data
+    assert "highlights" in data
+    assert "risks" in data
+    assert "next_actions" in data
+
