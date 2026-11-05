@@ -1,5 +1,7 @@
 """Application ports (interfaces) for repositories, unit of work, and LLM gateway."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 from app.infrastructure.db.models import RequestModel, RequestStatusHistoryModel, StatusModel

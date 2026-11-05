@@ -27,11 +27,15 @@ class Base(DeclarativeBase):
 class StatusModel(Base):
     __tablename__ = "statuses"
 
-    id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        SmallInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    )
     code: Mapped[str] = mapped_column(String(32), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    sort_order: Mapped[int] = mapped_column(SmallInteger, default=0, nullable=False)
+    sort_order: Mapped[int] = mapped_column(
+        SmallInteger().with_variant(Integer, "sqlite"), default=0, nullable=False
+    )
 
     def __repr__(self) -> str:
         return f"<StatusModel(id={self.id}, code='{self.code}', name='{self.name}')>"
@@ -40,11 +44,15 @@ class StatusModel(Base):
 class RequestModel(Base):
     __tablename__ = "requests"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    )
     public_id: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    status_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey("statuses.id"), nullable=False)
+    status_id: Mapped[int] = mapped_column(
+        SmallInteger().with_variant(Integer, "sqlite"), ForeignKey("statuses.id"), nullable=False
+    )
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -72,15 +80,19 @@ class RequestModel(Base):
 class RequestStatusHistoryModel(Base):
     __tablename__ = "request_status_history"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    )
     request_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("requests.id", ondelete="CASCADE"), nullable=False
+        BigInteger().with_variant(Integer, "sqlite"),
+        ForeignKey("requests.id", ondelete="CASCADE"),
+        nullable=False,
     )
     from_status_id: Mapped[Optional[int]] = mapped_column(
-        SmallInteger, ForeignKey("statuses.id"), nullable=True
+        SmallInteger().with_variant(Integer, "sqlite"), ForeignKey("statuses.id"), nullable=True
     )
     to_status_id: Mapped[int] = mapped_column(
-        SmallInteger, ForeignKey("statuses.id"), nullable=False
+        SmallInteger().with_variant(Integer, "sqlite"), ForeignKey("statuses.id"), nullable=False
     )
     changed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, nullable=False)
 
